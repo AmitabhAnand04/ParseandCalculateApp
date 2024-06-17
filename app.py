@@ -165,6 +165,10 @@ def calculate_premium(entities):
 
     return final_premium, description
 
+@app.route('/')
+def hello_world():
+    return 'Hello, World! This is my Flask app.'
+
 @app.route('/calculate_premium', methods=['POST'])
 def calculate_premium_endpoint():
     sample_text = request.data.decode('utf-8')
