@@ -3,6 +3,7 @@ import spacy
 import pyodbc
 from decimal import Decimal
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 
 # Get the current directory
@@ -18,6 +19,7 @@ nlp = spacy.load(model_path)
 DataNotAvailable = {}
 
 app = Flask(__name__)
+CORS(app)
 
 # Helper function to convert numerical strings to float after removing commas
 def convert_to_float(value):
