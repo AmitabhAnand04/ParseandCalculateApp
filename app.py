@@ -20,7 +20,6 @@ DataNotAvailable = {}
 
 app = Flask(__name__)
 CORS(app)
-
 # Helper function to convert numerical strings to float after removing commas
 def convert_to_float(value):
     return float(value.replace(',', '')) if ',' in value else float(value)
@@ -166,10 +165,6 @@ def calculate_premium(entities):
     description += f"Final Premium: ${final_premium:.2f}\n"
 
     return final_premium, description
-
-@app.route('/')
-def hello_world():
-    return 'Hello, World! This is my Flask app.'
 
 @app.route('/calculate_premium', methods=['POST'])
 def calculate_premium_endpoint():
