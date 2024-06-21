@@ -20,9 +20,14 @@ DataNotAvailable = {}
 
 app = Flask(__name__)
 CORS(app)
+
 # Helper function to convert numerical strings to float after removing commas
 def convert_to_float(value):
     return float(value.replace(',', '')) if ',' in value else float(value)
+
+# Helper function to format numbers with commas and two decimal places
+def format_currency(value):
+    return "${:,.2f}".format(value)
 
 # Function to fetch a single value from the database
 def fetch_single_value(cursor, query, params, entity_name):
@@ -80,7 +85,7 @@ def calculate_premium(entities):
     operational_hours = entities.get('OPERATIONAL_HOURS', '9 AM - 5 PM')
     employee_turnover = float(entities.get('EMPLOYEE_TURNOVER', 0))
 
-    description += f"Property Value: ${property_value}\n"
+    description += f"Property Value: {format_currency(property_value)}\n"
 
     # Retrieve size factors based on revenue and square footage
     revenue_size_factor = fetch_single_value(cursor, "SELECT SizeFactor FROM BusinessSizeAdjustments WHERE ? BETWEEN LowRevenue AND HighRevenue", (annual_revenue,), "ANNUAL_REVENUE")
@@ -112,59 +117,60 @@ def calculate_premium(entities):
 
     # Calculate base premium
     base_premium = base_rate * (property_value / 100000)
-    description += f"Base Rate per $100,000 Property Value: ${base_rate}\n"
-    description += f"Base Premium: ${base_rate} x ({property_value} / 100,000) = ${base_premium}\n"
+    description += f"Base Rate per $100,000 Property Value: {format_currency(base_rate)}\n"
+    description += f"Base Premium: {format_currency(base_rate)} x ({property_value} / 100,000) = {format_currency(base_premium)}\n"
 
     # Apply all the multipliers to the base premium
     final_premium = base_premium * location_multiplier
     description += f"Location Multiplier: {location_multiplier}\n"
-    description += f"Location Adjusted Premium: ${base_premium} x {location_multiplier} = ${final_premium}\n"
+    description += f"Location Adjusted Premium: {format_currency(base_premium)} x {location_multiplier} = {format_currency(final_premium)}\n"
 
     final_premium *= revenue_size_factor
-    description += f"Annual Revenue: ${annual_revenue}\n"
+    description += f"Annual Revenue: {format_currency(annual_revenue)}\n"
     description += f"Size Factor: {revenue_size_factor}\n"
     final_premium *= square_footage_size_factor
     description += f"Square Footage: {square_footage}\n"
     description += f"Square Footage Factor: {square_footage_size_factor}\n"
-    description += f"Size Adjusted Premium: {final_premium}\n"
+    description += f"Size Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= property_value_factor
     description += f"Property Value Factor: {property_value_factor}\n"
-    description += f"Property Value Adjusted Premium: {final_premium}\n"
+    description += f"Property Value Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= coverage_limit_factor
     description += f"Coverage Limit: {coverage_limit}\n"
     description += f"Coverage Factor: {coverage_limit_factor}\n"
-    description += f"Coverage Adjusted Premium: {final_premium}\n"
+    description += f"Coverage Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= deductible_factor
-    description += f"Deductible: ${deductible_amount}\n"
+    description += f"Deductible: {format_currency(deductible_amount)}\n"
     description += f"Deductible Factor: {deductible_factor}\n"
-    description += f"Deductible Adjusted Premium: {final_premium}\n"
+    description += f"Deductible Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= claims_history_factor
     description += f"Claims History: {claims_history}\n"
     description += f"Claims Factor: {claims_history_factor}\n"
-    description += f"Claims Adjusted Premium: {final_premium}\n"
+    description += f"Claims Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= risk_management_factor
     description += f"Risk Management Practices: {risk_management}\n"
     description += f"Risk Management Factor: {risk_management_factor}\n"
-    description += f"Risk Management Adjusted Premium: {final_premium}\n"
+    description += f"Risk Management Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= operational_hours_factor
     description += f"Operational Hours: {operational_hours}\n"
     description += f"Operational Hours Factor: {operational_hours_factor}\n"
-    description += f"Operational Hours Adjusted Premium: {final_premium}\n"
+    description += f"Operational Hours Adjusted Premium: {format_currency(final_premium)}\n"
 
     final_premium *= employee_turnover_factor
     description += f"Employee Turnover: {employee_turnover}\n"
     description += f"Employee Turnover Factor: {employee_turnover_factor}\n"
-    description += f"Employee Turnover Adjusted Premium: {final_premium}\n"
+    description += f"Employee Turnover Adjusted Premium: {format_currency(final_premium)}\n"
 
-    description += f"Final Premium: ${final_premium:.2f}\n"
+    description += f"Final Premium: {format_currency(final_premium)}\n"
 
     return final_premium, description
+
 
 @app.route('/calculate_premium', methods=['POST'])
 def calculate_premium_endpoint():
