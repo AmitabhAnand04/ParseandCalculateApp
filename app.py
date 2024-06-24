@@ -2,7 +2,7 @@ import sys
 import spacy
 import pyodbc
 from decimal import Decimal
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 import os
 
@@ -171,6 +171,37 @@ def calculate_premium(entities):
 
     return final_premium, description
 
+@app.route('/')
+def hello_world():
+    template = '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Hello, World!</title>
+        <style>
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                font-family: Arial, sans-serif;
+            }
+            p {
+                color: green;
+                font-weight: bold;
+                font-size: 24px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <p>Hello, World! This is api testing. API is Online.</p>
+        </div>
+    </body>
+    </html>
+    '''
+    return render_template_string(template)
 
 @app.route('/calculate_premium', methods=['POST'])
 def calculate_premium_endpoint():
