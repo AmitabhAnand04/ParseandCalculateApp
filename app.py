@@ -6,6 +6,12 @@ from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 import os
 
+# Define connection parameters
+server = 'chatbotserver456.database.windows.net'
+database = 'pocdb'
+username = 'sqlserver'
+password = 'chatbot@123'
+
 # Get the current directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -45,11 +51,7 @@ def calculate_premium(entities):
     DataNotAvailable = {}  # Reset DataNotAvailable dictionary
     description = ""  # Initialize description string
 
-    # Define connection parameters
-    server = 'chatbotserver456.database.windows.net'
-    database = 'pocdb'
-    username = 'sqlserver'
-    password = 'chatbot@123'
+    
     
     # Create a connection to the SQL Server database
     conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
@@ -202,6 +204,44 @@ def hello_world():
     </html>
     '''
     return render_template_string(template)
+
+# Database connection
+def get_db_connection():
+    conn = pyodbc.connect(
+        f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+        f'SERVER={server};'
+        f'DATABASE={database};'
+        f'UID={username};'
+        f'PWD={password}'
+    )
+    return conn
+
+# Route to fetch all data
+@app.route('/calculate_premium/help', methods=['GET'])
+def get_all_parameters():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM ParameterHelpTable')
+    rows = cursor.fetchall()
+    columns = [column[0] for column in cursor.description]
+    results = [dict(zip(columns, row)) for row in rows]
+    conn.close()
+    return jsonify(results)
+
+# Route to fetch data for a specific parameter
+@app.route('/calculate_premium/help/<parameter_name>', methods=['GET'])
+def get_parameter(parameter_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM ParameterHelpTable WHERE parameter = ?', (parameter_name,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        columns = [column[0] for column in cursor.description]
+        result = dict(zip(columns, row))
+        return jsonify(result)
+    else:
+        return jsonify({'error': 'Parameter not found'}), 404
 
 @app.route('/calculate_premium', methods=['POST'])
 def calculate_premium_endpoint():
