@@ -233,7 +233,7 @@ def get_all_parameters():
 def get_parameter(parameter_name):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM ParameterHelpTable WHERE parameter = ?', (parameter_name,))
+    cursor.execute('SELECT * FROM ParameterHelpTable WHERE parameter LIKE ?', ('%' + parameter_name + '%',))
     row = cursor.fetchone()
     conn.close()
     if row:
